@@ -1,0 +1,300 @@
+<!DOCTYPE html>
+<html lang="nb">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0"
+    />
+    <title>Finansieringsbeviskalkulator</title>
+    <link
+      rel="stylesheet"
+      href="https://cdn.jsdelivr.net/npm/@picocss/pico@1/css/pico.classless.min.css"
+    />
+    <style>
+      #bolig-sant {
+        display: none;
+        padding-inline: 1rem;
+        margin-bottom: 1.5rem;
+      }
+
+      fieldset,
+      legend {
+        text-align: center;
+      }
+
+      #verdi {
+        color: var(--primary);
+        display: inline-block;
+      }
+    </style>
+  </head>
+  <body>
+    <main>
+      <center>
+        <hgroup>
+          <h1>Kalkulator til finansieringsbevis</h1>
+          <h2>
+            Pessimistenes kalkulator som viser hvor mye du kan kjøpe bolig for.
+            <br />
+            For et nøyaktig estimat bør du kontakte banken din.
+          </h2>
+        </hgroup>
+      </center>
+
+      <fieldset>
+        <legend>Eier du bolig fra før?</legend>
+        <input
+          type="radio"
+          id="har-bolig"
+          name="har-bolig"
+          value="har-bolig"
+          onclick="tickBolig(this)"
+        />
+        <label for="har-bolig">Ja</label>
+        <input
+          type="radio"
+          id="har-ikke-bolig"
+          name="har-ikke-bolig"
+          value="har-ikke-bolig"
+          onclick="tickBolig(this)"
+        />
+        <label for="har-ikke-bolig">Nei</label>
+      </fieldset>
+
+      <div id="bolig-sant">
+        <label for="boligverdi">Boligens verdi i dag</label>
+        <input
+          type="text"
+          id="boligverdi"
+          name="boligverdi"
+          value="3000000"
+          class="currency"
+        />
+
+        <label for="restgjeld">Restsaldo på boliglån</label>
+        <input
+          type="text"
+          id="restgjeld"
+          name="restgjeld"
+          value="2500000"
+          class="currency"
+        />
+      </div>
+
+      <label for="inntekt">Husholdningens samlede inntekt</label>
+      <input
+        type="text"
+        id="inntekt"
+        name="inntekt"
+        value="800000"
+        class="currency"
+      />
+
+      <label for="disponibelt"
+        >Disponible midler (brukskonto, sparekonto, BSU)</label
+      >
+      <input
+        type="text"
+        id="disponibelt"
+        name="disponibelt"
+        value="100000"
+        class="currency"
+      />
+
+      <label for="aksjefond"
+        >Skattepliktige midler (fond, aksjer, obligasjoner)</label
+      >
+      <input
+        type="text"
+        id="aksjefond"
+        name="aksjefond"
+        value="200000"
+        class="currency"
+      />
+
+      <label for="onsket-ek">Ønsket egenkapitalsandel</label>
+      <input
+        type="text"
+        id="onsket-ek"
+        name="onsket-ek"
+        value="15"
+        class="percentage"
+      />
+
+      <br />
+      <br />
+
+      <center>
+        <h3>
+          Du skal kunne kjøpe bolig for
+          <span id="verdi"></span> kroner!
+        </h3>
+      </center>
+
+      <article>
+        <h3>Forklaring</h3>
+        <ul>
+          <li>Disponible midler regnes som 100% egenkapital</li>
+          <li>
+            Skattepliktige midler, som aksjefond eller lignende, regnes som 80%
+            av verdien i egenkapital
+          </li>
+          <li>
+            Banker bruker som regel en ekstra buffer på 100 000 kr samt 10% av
+            boligens verdi ved mellomfinansiering dersom du eier bolig fra før
+          </li>
+          <li>
+            Salg av bolig utgjør en kostnad på omtrent 100 000 kr som kommer i
+            tillegg til egenkapital
+          </li>
+          <li>
+            Alle boligkjøp har en 2.5% dokumentavgift som må dekkes av
+            egenkapital, det betyr at du må ha 2.5% mer egenkapital enn
+            egenkapitalsandelen du ønsker
+          </li>
+          <li>Boliglån skal ikke overstige 5 ganger inntekt</li>
+        </ul>
+
+        <footer>
+          <i>
+            Obs. Denne kalkulatoren er kun ment som en indikasjon på hvor mye du
+            kan kjøpe bolig for.
+            <br />Den erstatter ikke en reell vurdering fra banken din.
+          </i>
+        </footer>
+      </article>
+    </main>
+
+    <footer>
+      <center>
+        <small>
+          <p>
+            Vi samler ikke inn data, og bruker ingen cookies. Alt gjøres i
+            nettleseren din.
+            <br />
+            <a
+              href="https://github.com/sondregronas/finansieringsbeviskalkulator"
+            >
+              Kildekode
+            </a>
+          </p>
+        </small>
+      </center>
+    </footer>
+
+    <script>
+      const dokumentavgift = 0.025;
+      const buffer = 100000;
+      const salgsgebyr = 100000;
+
+      const boligverdi = document.getElementById("boligverdi");
+      const restgjeld = document.getElementById("restgjeld");
+      const inntekt = document.getElementById("inntekt");
+      const disponibelt = document.getElementById("disponibelt");
+      const aksjefond = document.getElementById("aksjefond");
+      const onsketEk = document.getElementById("onsket-ek");
+      const verdi = document.getElementById("verdi");
+      const harBolig = document.getElementById("har-bolig");
+
+      function tickBolig(el = null) {
+        if (el) {
+          if (el.id === "har-bolig") {
+            document.getElementById("har-ikke-bolig").checked = false;
+            localStorage.setItem("har-ikke-bolig", "false");
+            localStorage.setItem("har-bolig", "true");
+          } else {
+            document.getElementById("har-bolig").checked = false;
+            localStorage.setItem("har-bolig", "false");
+            localStorage.setItem("har-ikke-bolig", "true");
+          }
+        }
+        if (harBolig.checked) {
+          document.getElementById("bolig-sant").style.display = "block";
+        } else {
+          document.getElementById("bolig-sant").style.display = "none";
+        }
+        beregn();
+      }
+
+      function verdiFromEgenkapital(ek, onsketEk) {
+        return ek / (onsketEk + dokumentavgift);
+      }
+
+      function verdiFromInntekt(ek, inntekt) {
+        return (inntekt * 5 + ek) * (1 - dokumentavgift);
+      }
+
+      function parseNum(str) {
+        return parseInt(str.replace(/\D/g, "")) || 0;
+      }
+
+      function beregn() {
+        let boligverdiVerdi = parseNum(boligverdi.value);
+        let restgjeldVerdi = parseNum(restgjeld.value);
+        let inntektVerdi = parseNum(inntekt.value);
+        let disponibeltVerdi = parseNum(disponibelt.value);
+        let aksjefondVerdi = parseNum(aksjefond.value) * 0.8;
+        let onsketEkVerdi = parseNum(onsketEk.value) / 100;
+
+        let ek = disponibeltVerdi + aksjefondVerdi;
+        if (harBolig.checked) {
+          ek += boligverdiVerdi * 0.9 - restgjeldVerdi - salgsgebyr - buffer;
+        }
+
+        let verdiFromEgenkapitalVerdi = verdiFromEgenkapital(ek, onsketEkVerdi);
+        let verdiFromInntektVerdi = verdiFromInntekt(ek, inntektVerdi);
+
+        let verdiVerdi = Math.min(
+          verdiFromEgenkapitalVerdi,
+          verdiFromInntektVerdi
+        );
+        verdi.innerHTML = verdiVerdi.toLocaleString("nb", {
+          maximumFractionDigits: 0,
+        });
+      }
+
+      let inputs = document.querySelectorAll("input");
+      inputs.forEach(function (input) {
+        input.addEventListener("input", beregn);
+
+        input.addEventListener("change", function () {
+          if (input.type === "radio") {
+            localStorage.setItem(input.name, input.value ? "true" : "false");
+          } else {
+            localStorage.setItem(input.id, input.value);
+          }
+        });
+
+        if (input.classList.contains("currency")) {
+          input.addEventListener("blur", function () {
+            input.value = parseNum(input.value).toLocaleString("nb") + " kr";
+          });
+          input.addEventListener("focus", function () {
+            input.value = parseNum(input.value.replace(/\D/g, ""));
+          });
+        }
+        if (input.classList.contains("percentage")) {
+          input.addEventListener("blur", function () {
+            input.value = parseNum(input.value) + "%";
+          });
+          input.addEventListener("focus", function () {
+            input.value = parseNum(input.value.replace(/\D/g, ""));
+          });
+        }
+      });
+
+      inputs.forEach(function (input) {
+        input.value = localStorage.getItem(input.id) || input.value;
+        if (input.type === "radio") {
+          if (localStorage.getItem(input.id) === "true") {
+            input.checked = true;
+          }
+        }
+        input.dispatchEvent(new Event("blur"));
+      });
+      tickBolig();
+      beregn();
+    </script>
+  </body>
+</html>
